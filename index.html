@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <div id="messages-container"></div>
+    <input type="text" id="message-input" placeholder="Type your message...">
+    <button id="send-button">Send</button>
+    <script src="https://cdn.socket.io/3.1.1/socket.io.js"></script>
+    <script>
+        const url = 'https://fetch-test.blejert.repl.co';
+        const socket = io(url + '/chat');
+
+        console.log("getting messages")
+
+        socket.on('existing_messages', data=>{
+
+          const messagesContainer = document.getElementById('messages-container');
+        
+          messagesContainer.innerHTML = '';
+        
+          data.messages.forEach(message => {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messagesContainer.appendChild(messageElement);
+          });
+        });
+
+
+        const sendMessage = (message) => {
+            console.log("sending message")
+
+            const url = 'https://fetch-test.blejert.repl.co/api/send_message';
+            fetch(url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ message }),
+            })
+              .then(response => {
+                if (response.ok) {
+                  console.log('Message sent successfully.');
+                } else {
+                  console.error('Network response was not ok.');
+                }
+              })
+              .catch(error => console.error('Error:', error));
+        };
+
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        sendButton.addEventListener('click', () => {
+          const message = messageInput.value;
+          if (message.trim() !== '') {
+            sendMessage(message);
+            messageInput.value = '';
+          }
+        });
+
+        socket.on('new_message', data => {
+            const message = data.message;
+            const messagesContainer = document.getElementById('messages-container');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messagesContainer.appendChild(messageElement);
+        })
+    </script>
+</body>
+</html>
